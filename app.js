@@ -6,6 +6,7 @@ const app = express();
 const port = 3000;
 
 
+
 app.use(cors({ origin: 'http://127.0.0.1:8080' }));
 app.use(bodyParser.json());
 
@@ -25,6 +26,11 @@ app.post('/form', async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Ha ocurrido un error al registrar el usuario' });
   }
+});
+
+app.post('/login', async (req, res) => {
+
+
 });
 
 app.listen(port, () => {
