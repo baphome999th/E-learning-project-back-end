@@ -73,6 +73,38 @@ const validateRegistrationFields = [
     .withMessage("El tipo de usuario es requerido "),
 ];
 
+app.post("/contacto", validateRegistrationFields, async (req, res) => {
+  try {
+ 
+
+  const {
+    name,
+    email,
+    subject,
+    message
+  }=req.body;
+  const connection = await pool.getConnection();
+  const [rows] = await connection.execute(
+    "INSERT INTO contact (name, email, subject, message) VALUES (?, ?, ?, ?)",
+    [
+      name,
+      email,
+      subject,
+      message,
+      
+    ]
+  );
+
+  res.json({ message: "Mensaje enviado" });
+} catch (error) {
+  console.error(error);
+  res
+    .status(500)
+    .json({ error: "Ha ocurrido un error al enviar mensaje" });
+}
+
+});
+
 app.post("/form", validateRegistrationFields, async (req, res) => {
   try {
     // Verificamos si hay errores en la validación
@@ -199,6 +231,7 @@ app.get("/options/user_types", async (req, res) => {
     const connection = await pool.getConnection();
 
     const [rows] = await connection.execute("SELECT * FROM usertype");
+    console.log(rows);
     res.json(rows);
   } catch (err) {
     console.error(err.message);
@@ -206,12 +239,16 @@ app.get("/options/user_types", async (req, res) => {
   }
 });
 
-app.get("/options/municipality", async (req, res) => {
+app.get("/options/municipality/:departmentId", async (req, res) => {
   try {
+
+    const departmentId = req.params.departmentId;
+    console.log(departmentId);
     const connection = await pool.getConnection();
 
-    const [rows] = await connection.execute("SELECT * FROM municipality");
-
+    const [rows] = await connection.execute("SELECT * FROM municipality WHERE DepartmentId = ?",
+    [departmentId]);
+    
     console.log(rows);
     res.json(rows);
   } catch (err) {
@@ -236,6 +273,39 @@ app.get("/options/institution", async (req, res) => {
 });
 
 
+app.get("/options/department", async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    const [rows] = await connection.execute("SELECT * FROM department;");
+0
+    
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+app.get("/getUser/getUsername", authMiddleware, async (req,res)=>{
+try{
+  const connection = await pool.getConnection();
+  const [rows] = await connection.execute(
+
+    "select * from user where Name =?",
+    [req.Name]
+  );
+  console.log(rows);
+  res.json(rows);
+}catch{
+  console.error("Error getting user");  
+  res.status(401).send("usuario no autorizado");
+}
+
+});
+
+
 app.get("/getUser", authMiddleware,async (req, res) => {
   try{
     const connection = await pool.getConnection();
@@ -246,7 +316,7 @@ app.get("/getUser", authMiddleware,async (req, res) => {
       [req.email]
     
     );
-
+console.log(rows);
     res.json(rows);
 
   }catch(err){
@@ -254,6 +324,8 @@ app.get("/getUser", authMiddleware,async (req, res) => {
   res.status(401).send("usuario no autorizado");
   }
 });
+
+
 
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);
